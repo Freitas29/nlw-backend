@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 
 import knex from "../database/connection";
+import Point from "../model/Point";
 
 class PointsController {
   async index(request: Request, response: Response) {
@@ -33,21 +34,33 @@ class PointsController {
       items,
     } = request.body;
 
-    const point = {
-      image: "image-fake",
-      name,
-      email,
-      whatsapp,
-      latitude,
-      longitude,
-      city,
-      uf,
-    };
     const trx = await knex.transaction();
+
     try {
-      const insertedIds = await trx("points").insert(point);
+      const insertedIds = await trx("points").insert({
+        image: "image-fake",
+        name,
+        email,
+        whatsapp,
+        latitude,
+        longitude,
+        city,
+        uf,
+      });
 
       const point_id = insertedIds[0];
+
+      const point = new Point(
+        point_id,
+        "image-fake",
+        name,
+        email,
+        whatsapp,
+        latitude,
+        longitude,
+        city,
+        uf
+      );
 
       const pointItems = items.map((item_id: number) => {
         return {
@@ -58,10 +71,7 @@ class PointsController {
 
       await trx("point_items").insert(pointItems);
 
-      return response.json({
-        id: point_id,
-        ...point,
-      });
+      return response.json(point);
     } catch (e) {
       trx.rollback();
       return response.json({
