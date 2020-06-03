@@ -15,34 +15,62 @@ class PointsController {
       items,
     } = request.body;
 
+    const point = {
+      image: "image-fake",
+      name,
+      email,
+      whatsapp,
+      latitude,
+      longitude,
+      city,
+      uf,
+    };
+
     try {
-      const trx = await knex.transaction();
+      await knex.transaction(async (trx) => {
+        const insertedIds = await trx("points").insert(point);
 
-      const insertedIds = await trx("points").insert({
-        image: "image-fake",
-        name,
-        email,
-        whatsapp,
-        latitude,
-        longitude,
-        city,
-        uf,
+        const point_id = insertedIds[0];
+
+        const pointItems = items.map((item_id: number) => {
+          return {
+            item_id,
+            point_id,
+          };
+        });
+
+        await trx("point_items").insert(pointItems);
+
+        return response.json({
+          id: point_id,
+          ...point,
+        });
       });
-
-      const point_id = insertedIds[0];
-
-      const pointItems = items.map((item_id: number) => {
-        return {
-          item_id,
-          point_id,
-        };
-      });
-
-      await trx("point_items").insert(pointItems);
-
+    } catch (e) {
       return response.json({
-        success: `${name} cadastrado com sucesso `,
+        error: e,
       });
+    }
+  }
+
+  async show(request: Request, response: Response) {
+    const { id } = request.params;
+
+    try {
+      const point = await knex("points").where("id", id).first();
+
+      if (!point) {
+        return response.status(400).json({
+          error: "Point not found",
+        });
+      }
+
+      const items = await knex("items")
+        .join("point_items", "items.id", "=", "point_items.item_id")
+        .where("point_items.point_id", id)
+        .select('items.title', 'items.image');
+
+      return response.json({ point, items });
     } catch (e) {
       return response.json({
         error: e,
@@ -51,4 +79,4 @@ class PointsController {
   }
 }
 
-export default new PointsController()
+export default new PointsController();
