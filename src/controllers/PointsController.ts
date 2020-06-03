@@ -81,6 +81,7 @@ class PointsController {
       trx.commit();
     }
   }
+  
   async show(request: Request, response: Response) {
     const { id } = request.params;
 
