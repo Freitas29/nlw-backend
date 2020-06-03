@@ -74,7 +74,7 @@ class PointsController {
       return response.json(point);
     } catch (e) {
       trx.rollback();
-      return response.json({
+      return response.status(400).json({
         error: e,
       });
     } finally {
