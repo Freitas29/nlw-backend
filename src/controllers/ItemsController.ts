@@ -11,7 +11,7 @@ class ItemsController {
         return new Item(
           item.id,
           item.title,
-          `http://localhost:3000/uploads/${item.image}`
+          `http://192.168.0.111:3000/uploads/${item.image}`
         );
       });
 

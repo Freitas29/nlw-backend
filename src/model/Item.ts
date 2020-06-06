@@ -5,7 +5,7 @@ interface Item {
 }
 
 class Item {
-  constructor(id: Number, image: String, title: String) {
+  constructor(id: Number, title: String, image: String) {
     this.id = id;
     this.image = image;
     this.title = title;
